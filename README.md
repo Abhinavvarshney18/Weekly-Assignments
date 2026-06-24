@@ -1,116 +1,46 @@
-# Week 1 Assignment - E-commerce EDA Scenario Challenge
+# RetailIQ E-commerce EDA & Feature Engineering Challenge
 
-## Student Details
+**Student Name:** Abhinav Varshney  
+**Program:** B.Tech CSE (AIML & IOT)  
+**Submitted to:** Prof. Rohit Gupta  
+**Week:** 1  
 
-**Name:** Abhinav Varshney
-**University:** GLA University, Mathura
-**Course:** B.Tech AIML
+## Phase 1: Data Audit
+**Question:** The manager says "audit the data first." Where do you even begin?
 
----
+To audit a 500,000-row dataset with dirty data, the initial focus is on understanding the shape, types, and completeness of the data. The first steps include:
+* Using `df.info()` to check data types and memory usage.
+* Running `df.isnull().sum()` to calculate the exact percentage of missing values per column.
+* Using `df.describe()` to find impossible numerical values (e.g., negative prices or corrupted entries).
+* Checking for duplicate rows using `df.duplicated().sum()`.
+* Separating columns into numerical, low-cardinality categorical, high-cardinality categorical, and ordinal lists for targeted preprocessing later.
 
-## Project Overview
+## Phase 2: Pricing Visualization
+**Question:** Someone suspects the pricing data is heavily skewed prove it or disprove it.
 
-This project focuses on Exploratory Data Analysis (EDA), data preprocessing, feature engineering, and business insight generation using a large-scale e-commerce dataset containing 500,000 records.
+E-commerce pricing data is almost always heavily right-skewed (meaning there are many cheap items, and a few very expensive items that stretch the tail to the right). To prove this, we plot a distribution graph (histogram) and a boxplot. A strong right tail on the histogram and numerous outliers above the upper whisker on the boxplot confirm the skew. *(See solution.py for the exact implementation).*
 
-The objective is to analyze customer purchasing behavior, identify factors influencing product returns, and prepare data for future machine learning models.
+## Phase 3: Pipeline-Breaking Categoricals
+**Question:** Which categorical columns will break your ML pipeline if left untouched?
 
----
+If left untouched, several categorical columns will break a standard Machine Learning pipeline:
+* **High-Cardinality Columns (Cities):** Applying standard One-Hot Encoding here will create thousands of new columns, causing memory crashes (the curse of dimensionality).
+* **Mixed Data Types:** Columns containing both strings and integers will throw errors during mathematical operations or distance calculations.
+* **Missing Values in Categoricals:** Standard Scikit-Learn models (like Logistic Regression) will fail if null strings are not explicitly imputed.
+* **Ordinal Tiers (Loyalty):** Treating "Bronze, Silver, Gold" as regular nominal categories loses the mathematical relationship of their rank, degrading model performance.
 
-## Dataset Information
+## Phase 4: Scenario EDA - Return Patterns
+**Question:** Why are customers returning products? Find the patterns that matter to the business.
 
-* Total Records: 500,000
-* Total Features: 30
-* Dataset Type: E-commerce Transactions
-* Target Variable: `is_returned`
+To find actionable business patterns regarding returned products, we analyze the target variable (`Returned`) against other features:
+* **Delivery Time:** Grouping by shipping times to see if late deliveries strongly correlate with higher return rates.
+* **Product Category:** Calculating the return percentage per category to spot defective or highly subjective product lines (like clothing vs. electronics).
+* **Price Bins:** Creating price brackets to see if expensive, premium items are returned more frequently than cheap impulse buys.
+* **Loyalty Tiers:** Checking if guest/new customers return more items than established "Gold" members.
 
----
+## Phase 6: Feature Correlation
+**Question:** Are any features too correlated with each other? Which ones actually predict returns?
 
-## Assignment Tasks Completed
-
-### Phase 1: Data Audit
-
-* Checked dataset dimensions
-* Identified missing values
-* Analyzed data types
-* Detected categorical and numerical features
-
-### Phase 2: Price Distribution Analysis
-
-* Examined pricing features
-* Checked skewness
-* Identified outliers
-* Suggested log transformation
-
-### Phase 3: Categorical Feature Analysis
-
-* Identified categorical columns
-* Detected high-cardinality features
-* Recommended encoding techniques
-
-### Phase 4: Return Pattern Analysis
-
-* Calculated return rates
-* Analyzed return reasons
-* Generated business insights
-
-### Phase 5: Feature Engineering
-
-* Missing value handling
-* Feature scaling
-* One-Hot Encoding
-* Ordinal Encoding
-* ColumnTransformer Pipeline
-
-### Phase 6: Correlation Analysis
-
-* Correlation matrix study
-* Feature importance analysis
-* Return prediction insights
-
----
-
-## Technologies Used
-
-* Python
-* Pandas
-* NumPy
-* Matplotlib
-* Seaborn
-* Scikit-Learn
-
----
-
-## Repository Structure
-
-```
-Week1_Assignment/
-│
-├── ecommerce_500k.csv
-├── customer-churn-prediction.ipynb
-├── answers.md
-└── README.md
-```
-
----
-
-## Key Findings
-
-* Pricing data is positively skewed.
-* Missing values exist in multiple columns.
-* City feature contains high cardinality.
-* Product returns are mainly caused by:
-
-  * Not as Described
-  * Defective Products
-  * Wrong Item Delivered
-  * Better Price Found
-
----
-
-## Conclusion
-
-The dataset was successfully audited and analyzed. Important business insights were identified, and a complete preprocessing pipeline was designed to support future machine learning models for return prediction.
-
----
-
-**Submitted for Week 1 Assignment**
+To determine if features are too correlated (multicollinearity), we generate a correlation matrix heatmap. 
+* Features with a correlation coefficient above 0.85 (e.g., "Discount Amount" and "Discount Percentage") are redundant, and one should be dropped to prevent model instability. 
+* To see which features actually predict returns, we calculate the Point-Biserial correlation (for numeric features vs. the binary `Returned` target) or use Mutual Information scores to rank the predictive power of every feature.
